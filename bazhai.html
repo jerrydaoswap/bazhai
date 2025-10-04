@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八宅风水在线分析工具 - 专业版</title>
+    <style>
+        :root {
+            --primary-color: #8B0000; /* 暗红色，代表传统与权威 */
+            --secondary-color: #F0E68C; /* 卡其色/金色，代表财富与和谐 */
+            --text-color: #333;
+            --bg-color: #FDF5E6; /* 米色背景 */
+            --good-color: #006400; /* 吉祥的深绿色 */
+            --bad-color: #B22222; /* 凶险的火砖色 */
+        }
+        body {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--secondary-color);
+        }
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2.2em;
+            margin: 0;
+        }
+        header p {
+            color: #666;
+            font-style: italic;
+        }
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+        input, select, button {
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+        button {
+            grid-column: 1 / -1;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #A52A2A;
+        }
+        #results {
+            display: none;
+            margin-top: 30px;
+        }
+        .result-block {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-left: 5px solid var(--primary-color);
+            background-color: #fafafa;
+            border-radius: 0 8px 8px 0;
+        }
+        .result-block h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        .highlight {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .good { color: var(--good-color); }
+        .bad { color: var(--bad-color); }
+
+        .bagua-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .bagua-cell {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            position: relative;
+        }
+        .bagua-cell.center {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        .direction {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .star-name {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
+        .star-type {
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        .star-explanation {
+            margin-top: 30px;
+        }
+        .star-explanation ul {
+            list-style: none;
+            padding: 0;
+        }
+        .star-explanation li {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .star-explanation li::before {
+            content: '◆';
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+        .star-explanation .good::before { color: var(--good-color); }
+        .star-explanation .bad::before { color: var(--bad-color); }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 600px) {
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 20px;
+            }
+            header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>八宅风水在线分析工具</h1>
+            <p>融合千年易经智慧与现代编程技术，为您解析家居吉凶</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <form id="fengshui-form">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="birth-year">您的出生年份</label>
+                            <input type="number" id="birth-year" placeholder="例如: 1985" required min="1920" max="2023">
+                        </div>
+                        <div class="form-group">
+                            <label>您的性别</label>
+                            <div>
+                                <input type="radio" id="male" name="gender" value="male" checked>
+                                <label for="male">男</label> &nbsp;&nbsp;
+                                <input type="radio" id="female" name="gender" value="female">
+                                <label for="female">女</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="house-facing">房屋大门朝向</label>
+                            <select id="house-facing" required>
+                                <option value="N">正北</option>
+                                <option value="NE">东北</option>
+                                <option value="E">正东</option>
+                                <option value="SE">东南</option>
+                                <option value="S">正南</option>
+                                <option value="SW">西南</option>
+                                <option value="W">正西</option>
+                                <option value="NW">西北</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" onclick="analyzeFengShui()">开始分析</button>
+                </form>
+            </section>
+
+            <section id="results">
+                <div class="result-block" id="personal-analysis"></div>
+                <div class="result-block" id="house-analysis"></div>
+                <div class="result-block" id="match-analysis"></div>
+                
+                <div class="result-block">
+                    <h2>房屋八方吉凶详解</h2>
+                    <p>根据您的房屋宅卦，我们将九宫格（洛书）套入平面，得出每个方位的吉凶星曜如下：</p>
+                    <div id="bagua-grid" class="bagua-grid">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+
+                <div class="result-block star-explanation">
+                    <h2>八星释义与布局建议</h2>
+                    <ul>
+                        <li class="good"><strong>生气 (大吉):</strong> 最旺之星，主生机、活力、晋升、名誉。此方位宜作卧室、客厅或办公室，能催旺事业运和财运。可摆放生机勃勃的绿植。</li>
+                        <li class="good"><strong>天医 (次吉):</strong> 主健康、财富、贵人。此方位宜作卧室、厨房（灶口朝向此方），对健康和财运有益。可放置葫芦、白水晶等。</li>
+                        <li class="good"><strong>延年 (中吉):</strong> 主感情、婚姻、人际关系、长寿。此方位宜作卧室、客厅，可增进夫妻感情，改善人际关系。可摆放粉晶、合照等。</li>
+                        <li class="good"><strong>伏位 (小吉):</strong> 主稳定、平顺、安宁。此方位宜作书房、卧室或神位，利于思考和稳定情绪。适合静心，不宜有太大变动。</li>
+                        <li class="bad"><strong>绝命 (大凶):</strong> 最凶之星，主病痛、血光、破财、意外。此方位切忌作大门、卧室、厨房。宜用作储物间或卫生间。可用金属风水物品（如铜麒麟）来化解其土性。</li>
+                        <li class="bad"><strong>五鬼 (次凶):</strong> 主口舌、是非、火灾、官司、疾病。此方位不宜作大门、卧室、厨房。易生争吵，影响安宁。可用葫芦等来收纳其火气。</li>
+                        <li class="bad"><strong>六煞 (中凶):</strong> 主烦恼、是非、失财、感情不和。此方位不宜作卧室，尤其影响婚姻。可用水种植物或黑色装饰物来化解。</li>
+                        <li class="bad"><strong>祸害 (小凶):</strong> 主是非、疾病、破财、纠纷。此方位影响较小，但不宜作重要区域。易招小人，身体易有小病痛。可用铜制品化解。</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p><strong>免责声明：</strong>本工具基于八宅风水学理论进行编程计算，为初步的、标准化的分析。风水学博大精深，实际布局需综合考虑房屋外环境、内部结构、流年飞星等多种因素。为获得最精准的建议，请咨询专业的风水顾问进行现场勘测。</p>
+            <p>&copy; 2024 风水编程专家联合出品</p>
+        </footer>
+    </div>
+
+<script>
+// --- 八宅风水核心算法与数据 ---
+const guaData = {
+    1: { name: '坎', element: '水', group: '东四命', trigram: '☵' },
+    2: { name: '坤', element: '土', group: '西四命', trigram: '☷' },
+    3: { name: '震', element: '木', group: '东四命', trigram: '☳' },
+    4: { name: '巽', element: '木', group: '东四命', trigram: '☴' },
+    6: { name: '乾', element: '金', group: '西四命', trigram: '☰' },
+    7: { name: '兑', element: '金', group: '西四命', trigram: '☱' },
+    8: { name: '艮', element: '土', group: '西四命', trigram: '☶' },
+    9: { name: '离', element: '火', group: '东四命', trigram: '☲' },
+};
+
+const directionMap = {
+    'N':  { sitting: 'S',  gua: 9, name: '正北' },
+    'NE': { sitting: 'SW', gua: 2, name: '东北' },
+    'E':  { sitting: 'W',  gua: 7, name: '正东' },
+    'SE': { sitting: 'NW', gua: 6, name: '东南' },
+    'S':  { sitting: 'N',  gua: 1, name: '正南' },
+    'SW': { sitting: 'NE', gua: 8, name: '西南' },
+    'W':  { sitting: 'E',  gua: 3, name: '正西' },
+    'NW': { sitting: 'SE', gua: 4, name: '西北' },
+};
+
+// 宅卦对应各方位的星曜
+const houseStars = {
+    // 坎宅 (坐北向南)
+    1: { SE: '生气', S: '延年', E: '天医', N: '伏位', SW: '绝命', W: '祸害', NW: '六煞', NE: '五鬼' },
+    // 坤宅 (坐西南向东北)
+    2: { NE: '生气', NW: '延年', W: '天医', SW: '伏位', N: '绝命', SE: '祸害', S: '六煞', E: '五鬼' },
+    // 震宅 (坐东向西)
+    3: { S: '生气', N: '延年', SE: '天医', E: '伏位', W: '绝命', SW: '祸害', NE: '六煞', NW: '五鬼' },
+    // 巽宅 (坐东南向西北)
+    4: { N: '生气', E: '延年', S: '天医', SE: '伏位', NW: '绝命', NE: '祸害', W: '六煞', SW: '五鬼' },
+    // 乾宅 (坐西北向东南)
+    6: { W: '生气', SW: '延年', NE: '天医', NW: '伏位', SE: '绝命', E: '五鬼', N: '六煞', S: '祸害' },
+    // 兑宅 (坐西向东)
+    7: { NW: '生气', NE: '延年', SW: '天医', W: '伏位', E: '绝命', N: '祸害', SE: '五鬼', S: '六煞' },
+    // 艮宅 (坐东北向西南)
+    8: { SW: '生气', W: '延年', NW: '天医', NE: '伏位', SE: '绝命', S: '祸害', E: '六煞', N: '五鬼' },
+    // 离宅 (坐南向北)
+    9: { E: '生气', SE: '延年', N: '天医', S: '伏位', NE: '绝命', NW: '祸害', SW: '五鬼', W: '六煞' },
+};
+
+// 九宫格方位顺序 (用于渲染)
+const baguaOrder = ['NW', 'N', 'NE', 'W', 'Center', 'E', 'SW', 'S', 'SE'];
+const directionNames = {
+    N: '坎(北)', NE: '艮(东北)', E: '震(东)', SE: '巽(东南)',
+    S: '离(南)', SW: '坤(西南)', W: '兑(西)', NW: '乾(西北)'
+};
+const starTypes = {
+    '生气': '大吉', '天医': '次吉', '延年': '中吉', '伏位': '小吉',
+    '绝命': '大凶', '五鬼': '次凶', '六煞': '中凶', '祸害': '小凶'
+};
+
+// --- 核心计算函数 ---
+
+function calculateLifeGua(year, gender) {
+    if (year === "") return null;
+    year = parseInt(year);
+
+    let yearSum = year.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    while (yearSum > 9) {
+        yearSum = yearSum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    }
+    
+    let gua;
+    if (year < 2000) {
+        if (gender === 'male') {
+            gua = 10 - yearSum;
+        } else {
+            gua = 5 + yearSum;
+        }
+    } else { // 2000年及以后
+        if (gender === 'male') {
+            gua = 9 - yearSum;
+        } else {
+            gua = 6 + yearSum;
+        }
+    }
+
+    if (gua > 9) gua -= 9;
+    if (gua === 0) gua = 9;
+    if (gua === 5) {
+        gua = (gender === 'male') ? 2 : 8;
+    }
+    return gua;
+}
+
+function analyzeFengShui() {
+    // 1. 获取用户输入
+    const year = document.getElementById('birth-year').value;
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    const facing = document.getElementById('house-facing').value;
+
+    if (!year) {
+        alert("请输入您的出生年份！");
+        return;
+    }
+
+    // 2. 计算个人命卦
+    const lifeGuaNum = calculateLifeGua(year, gender);
+    const personalGua = guaData[lifeGuaNum];
+    
+    const personalHtml = `
+        <h2>您的命卦分析</h2>
+        <p>根据您的出生信息，您的个人命卦为 <span class="highlight good">${personalGua.trigram} ${personalGua.name}卦</span>，五行属<span class="highlight good">${personalGua.element}</span>。</p>
+        <p>您属于 <span class="highlight good">${personalGua.group}</span>。</p>
+    `;
+    document.getElementById('personal-analysis').innerHTML = personalHtml;
+
+    // 3. 计算房屋宅卦
+    const houseInfo = directionMap[facing];
+    const houseGuaNum = houseInfo.gua;
+    const houseGua = guaData[houseGuaNum];
+    
+    const houseHtml = `
+        <h2>房屋宅卦分析</h2>
+        <p>房屋朝向为 <span class="highlight">${houseInfo.name}</span>，则坐向为 <span class="highlight">${directionMap[houseInfo.sitting].name}</span>。</p>
+        <p>此宅的宅卦为 <span class="highlight good">${houseGua.trigram} ${houseGua.name}宅</span>，属于 <span class="highlight good">${houseGua.group}</span>。</p>
+    `;
+    document.getElementById('house-analysis').innerHTML = houseHtml;
+
+    // 4. 人宅匹配分析
+    const isMatch = personalGua.group === houseGua.group;
+    let matchHtml = `<h2>人宅匹配分析</h2>`;
+    if (isMatch) {
+        matchHtml += `<p class="highlight good">恭喜！您的命卦(${personalGua.group})与房屋宅卦(${houseGua.group})相配，此为吉宅，能助旺您的运势。</p>`;
+    } else {
+        matchHtml += `<p class="highlight bad">注意：您的命卦(${personalGua.group})与房屋宅卦(${houseGua.group})不相配。但无需过分担忧，可通过内部布局调整来趋吉避凶。</p>`;
+    }
+    document.getElementById('match-analysis').innerHTML = matchHtml;
+
+    // 5. 生成八方吉凶图
+    const stars = houseStars[houseGuaNum];
+    let gridHtml = '';
+    baguaOrder.forEach(dir => {
+        if (dir === 'Center') {
+            gridHtml += `<div class="bagua-cell center">
+                            <div>${houseGua.trigram} ${houseGua.name}宅</div>
+                            <div>中宫</div>
+                        </div>`;
+        } else {
+            const star = stars[dir];
+            const type = starTypes[star];
+            const typeClass = (type.includes('吉')) ? 'good' : 'bad';
+            gridHtml += `
+                <div class="bagua-cell">
+                    <div class="direction">${directionNames[dir]}</div>
+                    <div class="star-name ${typeClass}">${star}</div>
+                    <div class="star-type ${typeClass}">(${type})</div>
+                </div>
+            `;
+        }
+    });
+    document.getElementById('bagua-grid').innerHTML = gridHtml;
+
+    // 6. 显示结果区域
+    document.getElementById('results').style.display = 'block';
+    
+    // 平滑滚动到结果区域
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
